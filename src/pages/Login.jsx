@@ -18,13 +18,13 @@ export default function Login() {
       <div className="flex space-x-4">
         <button
           onClick={handleLogin}
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
         >
           Logga in
         </button>
         <Link
           to="/register"
-          className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
         >
           Registrera dig
         </Link>
