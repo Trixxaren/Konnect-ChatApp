@@ -5,7 +5,18 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  proxy: {
-    "/auth": "http://localhost:3000", // ⟵ Ändra till din backend
+  server: {
+    proxy: {
+      "/csrf": {
+        target: "https://chatify-api.up.railway.app", // 🔧 __NYTT__
+        changeOrigin: true,
+        secure: true,
+      },
+      "/auth": {
+        target: "https://chatify-api.up.railway.app", // 🔧 __NYTT__
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
 });

@@ -1,98 +1,52 @@
-// 🔧 __NYTT: importera useNavigate__ + useState
+// 🔧 __NYTT: imports__
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // 🔧 __NYTT: useNavigate__
-import { useAuth } from "../auth/AuthContext"; // Om du använder AuthContext
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { getCsrf, registerUser, createToken } from "../api/auth"; // 🔧 __NYTT__
 
 export default function Register() {
-  const navigate = useNavigate(); // 🔧 __NYTT: skapa navigate-funktionen__
-  const { login } = useAuth?.() ?? { login: () => {} }; // defensivt: funkar även om AuthContext saknas
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  // Lokalt state för formuläret
+  // Form state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Antaganden: du har redan:
-  // import { useState } from "react";
-  // import { Link, useNavigate } from "react-router-dom";
-  // import { useAuth } from "../auth/AuthContext";
-  // const API_URL = import.meta.env.VITE_API_URL ?? ""; // 🔧 ÄNDRAT: bas-URL om du kör proxy/Vite
+  // En enkel default-avatar (Swagger säger avatar är valfri)
+  const defaultAvatar =
+    "https://api.dicebear.com/9.x/identicon/svg?seed=" +
+    encodeURIComponent(username || "guest");
 
   const handleRegister = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      const res = await fetch("/auth/register", {
-        // 🔧 ÄNDRAT: använd bas-URL
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // Om ditt API kräver cookies/CSRF:
-        // credentials: "include", // 🔧 ÄNDRAT: avkommentera vid behov
-        body: JSON.stringify({ username, password, email }),
+      // 1) CSRF
+      const { csrfToken } = await getCsrf(); // 🔧 __NYTT__
+
+      // 2) Register — enligt Swagger kräver csrfToken i body
+      await registerUser({
+        username,
+        password,
+        email,
+        avatar: defaultAvatar, // 🔧 __NYTT: skicka något vettigt eller låt user välja__
+        csrfToken,
       });
 
-      // --- Branch 1: Konto finns redan ---
-      if (res.status === 409) {
-        // 🔧 ÄNDRAT: kolla uttryckligen 409
-        // Försök läsa felmeddelande från API (om det finns)
-        let msg = "Kontot finns redan. Prova att logga in i stället.";
-        try {
-          const data = await res.json();
-          if (data?.message) msg = data.message;
-        } catch {}
-        alert(msg);
-        return;
-      }
+      // 3) Skapa JWT token (”login”)
+      const { token } = await createToken({ username, password, csrfToken }); // 🔧 __NYTT__
 
-      // --- Branch 2: Valideringsfel ---
-      if (res.status === 400) {
-        // 🔧 ÄNDRAT
-        let msg = "Felaktiga fält. Kontrollera uppgifterna.";
-        try {
-          const data = await res.json();
-          if (data?.message) msg = data.message;
-        } catch {}
-        alert(msg);
-        return;
-      }
-
-      // --- Branch 3: Lyckat (200 eller 201) ---
-      if (res.ok) {
-        // ✅ fångar 200, 201, 204 etc.
-        // En del API:er returnerar body med token/user, andra inte.
-        let data = null;
-        try {
-          // Läs JSON bara om det finns nåt att läsa
-          const text = await res.text(); // 🔧 ÄNDRAT
-          data = text ? JSON.parse(text) : null; // 🔧 ÄNDRAT
-        } catch {
-          data = null;
-        }
-
-        // Förväntat: { token, user } – justera efter ditt API
-        if (data?.token && data?.user) {
-          login(data.token, data.user); // ✅ Spara auth
-        } else {
-          // Om API:t inte skickar token, kanske du ska logga in direkt efter register
-          // Exempel:
-          // const loginRes = await fetch(`${API_URL}/auth/login`, {...})
-          // ...
-        }
-
-        navigate("/chat"); // ✅ in i chatten
-        return;
-      }
-
-      // --- Branch 4: Övriga fel (t.ex. 500, 404, CORS, etc.) ---
-      let fallback = `Kunde inte registrera (HTTP ${res.status}). Försök igen.`;
-      try {
-        const data = await res.json();
-        if (data?.message) fallback = data.message;
-      } catch {}
-      alert(fallback);
+      // 4) Spara i AuthContext och hoppa till chat
+      const user = { username, email, avatar: defaultAvatar }; // Anpassa om API returnerar user-objekt någonstans
+      login(token, user); // sparar i localStorage etc.
+      navigate("/chat");
     } catch (err) {
-      console.error("Register error:", err);
-      alert("Nätverksfel eller CORS-problem. Kolla devtools → Network-fliken.");
+      console.error("Register flow error:", err);
+      alert(err.message || "Något gick fel vid registrering.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,7 +54,7 @@ export default function Register() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-4xl font-bold mb-8">Registrera dig</h1>
 
-      {/* 🔧 __ÄNDRAT: onSubmit i stället för action/method__ */}
+      {/* 🔧 __ÄNDRAT: onSubmit hanteras i React__ */}
       <form
         onSubmit={handleRegister}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
@@ -114,7 +68,7 @@ export default function Register() {
             name="username"
             type="text"
             required
-            className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border rounded-md"
           />
         </label>
 
@@ -125,13 +79,13 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="********"
             name="password"
-            type="password" // 🔧 __ÄNDRAT: password-fält__
+            type="password" // 🔧 __ÄNDRAT__
             required
-            className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border rounded-md"
           />
         </label>
 
-        <label className="block mb-4">
+        <label className="block mb-6">
           <span className="text-gray-700">Mejladress</span>
           <input
             value={email}
@@ -140,15 +94,16 @@ export default function Register() {
             name="email"
             type="email"
             required
-            className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border rounded-md"
           />
         </label>
 
         <button
           type="submit"
-          className="w-full px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"
+          disabled={loading}
+          className="w-full px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-60"
         >
-          Registrera
+          {loading ? "Registrerar..." : "Registrera"}
         </button>
       </form>
 
