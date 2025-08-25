@@ -60,16 +60,37 @@ export async function registerUser({
   throw err; // 🔧 ÄNDRAT
 }
 
-/** Byt inlogg till JWT — kräver csrfToken */
+// Vissa API:er svarar 400 även när kontot redan finns
+// 🔧 ÄNDRAT: robust felhantering för login/token
 export async function createToken({ username, password, csrfToken }) {
   const res = await fetch("/auth/token", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ username, password, csrfToken }), // 🔧 __VIKTIGT__
+    body: JSON.stringify({ username, password, csrfToken }),
   });
-  if (!res.ok) {
-    const d = await res.json().catch(() => ({}));
-    throw new Error(d?.message || `Token misslyckades (${res.status}).`);
+
+  // Läs body säkert (kan vara tom / inte JSON)
+  const raw = await res.text().catch(() => "");
+  let data = null;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {}
+
+  if (res.ok) {
+    // { token: "..." }
+    return data || {};
   }
-  return res.json(); // { token: "..." }
+
+  // Plocka fram meddelande
+  const apiMsg = data?.message || data?.error || raw || "Login misslyckades.";
+
+  // 🔎 Klassificera
+  let code = "unknown";
+  if (res.status === 401) code = "invalid_credentials";
+  else if (res.status === 400) code = "validation";
+
+  const err = new Error(apiMsg);
+  err.code = code;
+  err.status = res.status;
+  throw err;
 }

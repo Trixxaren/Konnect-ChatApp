@@ -43,8 +43,8 @@ export default function Register() {
       login(token, user);
       navigate("/chat");
     } catch (err) {
-      // Felmeddelanden för felkod och alert vid registrering (både alert och console för användarvänlighet och för debugging/uppgiftens krav)
-      console.error("Register error:", err);
+      // Felmeddelanden för felkod och alert vid registrering (både alert och warn för användarvänlighet och för debugging/uppgiftens krav)
+      console.warn("Register error:", err);
       if (err?.code === "user_exists") {
         alert(
           "Det finns redan ett konto med dessa uppgifter. Prova att logga in."
