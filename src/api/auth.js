@@ -10,6 +10,8 @@ export async function getCsrf() {
   return res.json(); // { csrfToken: "..." }
 }
 
+// src/api/auth.js
+
 /** Registrera användare — kräver csrfToken */
 export async function registerUser({
   username,
@@ -21,19 +23,41 @@ export async function registerUser({
   const res = await fetch("/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password, email, avatar, csrfToken }), // 🔧 __VIKTIGT__
+    body: JSON.stringify({ username, password, email, avatar, csrfToken }),
   });
 
+  // ✅ NYTT: läs råtext först (ibland tom), parsa försiktigt
+  const raw = await res.text().catch(() => ""); // ✅ NYTT
+  let data = null; // ✅ NYTT
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {} // ✅ NYTT
+
+  if (res.ok) {
+    // 201 Created – ibland utan body. Allt OK.
+    return { ok: true, data }; // 🔧 ÄNDRAT (returnera lite mer info)
+  }
+
+  // ✅ NYTT: hämta meddelande från olika fält
+  const apiMsg = data?.message || data?.error || raw || "Okänt fel"; // ✅ NYTT
+
+  // ✅ NYTT: klassificera felet
+  let code = "unknown"; // ✅ NYTT
   if (res.status === 409) {
-    const d = await res.json().catch(() => ({}));
-    throw new Error(d?.message || "Kontot finns redan.");
+    code = "user_exists"; // ✅ NYTT
+  } else if (res.status === 400) {
+    // Vissa API:er svarar 400 även när kontot redan finns
+    if (/exist|already|taken|duplicate|registered/i.test(apiMsg)) {
+      code = "user_exists"; // ✅ NYTT
+    } else {
+      code = "validation"; // ✅ NYTT
+    }
   }
-  if (!res.ok) {
-    const d = await res.json().catch(() => ({}));
-    throw new Error(d?.message || `Register misslyckades (${res.status}).`);
-  }
-  // 201 Created – vissa API:n svarar tom body. Vi bryr oss inte om svaret här.
-  return true;
+
+  const err = new Error(apiMsg || `Register misslyckades (${res.status}).`); // 🔧 ÄNDRAT
+  err.code = code; // ✅ NYTT
+  err.status = res.status; // ✅ NYTT
+  throw err; // 🔧 ÄNDRAT
 }
 
 /** Byt inlogg till JWT — kräver csrfToken */

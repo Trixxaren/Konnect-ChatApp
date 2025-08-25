@@ -24,27 +24,36 @@ export default function Register() {
     setLoading(true);
     try {
       // 1) CSRF
-      const { csrfToken } = await getCsrf(); // 🔧 __NYTT__
+      const { csrfToken } = await getCsrf();
 
-      // 2) Register — enligt Swagger kräver csrfToken i body
+      // 2) Register
       await registerUser({
         username,
         password,
         email,
-        avatar: defaultAvatar, // 🔧 __NYTT: skicka något vettigt eller låt user välja__
+        avatar: defaultAvatar,
         csrfToken,
       });
 
-      // 3) Skapa JWT token (”login”)
-      const { token } = await createToken({ username, password, csrfToken }); // 🔧 __NYTT__
+      // 3) Skapa JWT token
+      const { token } = await createToken({ username, password, csrfToken });
 
-      // 4) Spara i AuthContext och hoppa till chat
-      const user = { username, email, avatar: defaultAvatar }; // Anpassa om API returnerar user-objekt någonstans
-      login(token, user); // sparar i localStorage etc.
+      // 4) Spara och gå till chat
+      const user = { username, email, avatar: defaultAvatar };
+      login(token, user);
       navigate("/chat");
     } catch (err) {
-      console.error("Register flow error:", err);
-      alert(err.message || "Något gick fel vid registrering.");
+      // Felmeddelanden för felkod och alert vid registrering (både alert och console för användarvänlighet och för debugging/uppgiftens krav)
+      console.error("Register error:", err);
+      if (err?.code === "user_exists") {
+        alert(
+          "Det finns redan ett konto med dessa uppgifter. Prova att logga in."
+        );
+      } else if (err?.code === "validation") {
+        alert(err.message || "Valideringsfel – kontrollera fälten.");
+      } else {
+        alert(err?.message || `Något gick fel (HTTP ${err?.status ?? "?"}).`);
+      }
     } finally {
       setLoading(false);
     }
