@@ -8,12 +8,18 @@ export default defineConfig({
   server: {
     proxy: {
       "/csrf": {
-        target: "https://chatify-api.up.railway.app", // 🔧 __NYTT__
+        target: "https://chatify-api.up.railway.app",
         changeOrigin: true,
         secure: true,
       },
       "/auth": {
-        target: "https://chatify-api.up.railway.app", // 🔧 __NYTT__
+        target: "https://chatify-api.up.railway.app",
+        changeOrigin: true,
+        secure: true,
+      },
+      // 🔧 __NYTT: proxy för meddelanden__
+      "/messages": {
+        target: "https://chatify-api.up.railway.app", // ⟵ API:ts basdomän
         changeOrigin: true,
         secure: true,
       },

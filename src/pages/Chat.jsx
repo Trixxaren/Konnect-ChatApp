@@ -1,84 +1,118 @@
 import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
+import SideNav from "../components/SideNav";
 
 export default function Chat() {
-  const { user, logout } = useAuth(); // hämtar user från AuthContext
-  const [messages, setMessages] = useState([]); // lokala meddelanden
-  const [input, setInput] = useState("");
+  const { user, logout } = useAuth();
+  const [openNav, setOpenNav] = useState(false);
 
-  // Skicka nytt meddelande (just nu bara lokalt)
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  // ➡️ Då får varje sträng (Robin, Lisa, Hammlét) en unik men stabil avatar. Det betyder: samma användarnamn → samma avatar varje gång, på alla datorer.
 
-    const newMessage = {
-      id: Date.now(),
-      text: input.trim(),
-      sender: user?.username || "Du",
-    };
+  const avatar = `https://i.pravatar.cc/200?u=${encodeURIComponent(
+    // u=${username} → gör avataren personlig per användare
+    user?.username || "guest"
+  )}`;
 
-    setMessages((prev) => [...prev, newMessage]); // lägg till nytt i listan
-    setInput(""); // rensa fältet
-  };
+  const demoMessages = [
+    {
+      id: "1",
+      author: "System",
+      text: "Välkommen till chatten!",
+      createdAt: "10:00",
+    },
+    {
+      id: "2",
+      author: user?.username ?? "Du",
+      text: "Layouten först, logik sen 🙌",
+      createdAt: "10:01",
+    },
+  ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white shadow-md rounded-lg w-full max-w-lg flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h1 className="text-xl font-bold">Chatrum</h1>
-          <button
-            onClick={logout}
-            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            Logga ut
-          </button>
-        </div>
+    <div className="min-h-screen bg-gray-100 relative">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b">
+        <div className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* 🔧 Visas ALLTID (inte md:hidden) */}
+            <button
+              onClick={() => setOpenNav(true)}
+              aria-label="Öppna meny"
+              className="p-2 rounded-lg hover:bg-gray-100"
+              title="Meny"
+            >
+              <svg viewBox="0 0 20 20" className="h-6 w-6" fill="currentColor">
+                <path d="M3 5h14v2H3V5zm0 4h14v2H3V9zm0 4h14v2H3v-2z" />
+              </svg>
+            </button>
 
-        {/* Meddelandelista */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-2">
-          {messages.length === 0 ? (
-            <p className="text-gray-500 text-center">
-              Inga meddelanden än. Skriv något nedan!
-            </p>
-          ) : (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`p-2 rounded-lg max-w-[70%] ${
-                  msg.sender === user?.username
-                    ? "bg-blue-100 self-end ml-auto"
-                    : "bg-gray-200"
-                }`}
-              >
-                <span className="block text-sm font-semibold">
-                  {msg.sender}
-                </span>
-                <span>{msg.text}</span>
+            <span className="text-xl font-semibold">Konnect Chat</span>
+            <span className="hidden sm:inline text-sm text-gray-500">
+              / general
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* 🔧 Klick på avatar öppnar också menyn */}
+            <img
+              src={avatar}
+              alt="Avatar"
+              className="h-8 w-8 rounded-full border cursor-pointer"
+              onClick={() => setOpenNav(true)}
+              title="Öppna meny"
+            />
+            <span className="text-sm text-gray-600">{user?.username}</span>
+            <button
+              onClick={logout}
+              className="px-3 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
+            >
+              Logga ut
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Content (demo) */}
+      <div className="mx-auto max-w-6xl px-4 py-4">
+        <main className="bg-white rounded-xl shadow flex flex-col h-[calc(100vh-9rem)]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 border-b">
+            {demoMessages.map((m) => (
+              <div key={m.id} className="max-w-[75%]">
+                <div className="text-xs text-gray-500 mb-0.5">
+                  <span className="font-semibold">{m.author}</span> •{" "}
+                  {m.createdAt}
+                </div>
+                <div className="bg-gray-100 rounded-xl px-3 py-2">{m.text}</div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
 
-        {/* Inputfält */}
-        <form
-          onSubmit={handleSend}
-          className="p-4 border-t flex items-center space-x-2"
-        >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Skriv ett meddelande..."
-            className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-indigo-500"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="p-3 md:p-4 flex gap-2 items-center"
           >
-            Skicka
-          </button>
-        </form>
+            <input
+              placeholder="Skriv ett meddelande..."
+              className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-indigo-500"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600"
+            >
+              Skicka
+            </button>
+          </form>
+        </main>
       </div>
+
+      {/* 🔧 Slide-over sidenav */}
+      <SideNav
+        open={openNav}
+        onClose={() => setOpenNav(false)}
+        user={user}
+        onLogout={logout}
+        avatarUrl={avatar}
+      />
     </div>
   );
 }
