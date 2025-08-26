@@ -1,19 +1,19 @@
-// 🔧 NYTT: enkel login-sida som följer Swagger-flödet
+// Enkel login-sida som följer Swagger-flödet
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { getCsrf, createToken } from "../api/auth"; // vi gjorde dessa nyss
+import { getCsrf, createToken } from "../api/auth";
 
 export default function Login() {
   const navigate = useNavigate();
   const { token, login } = useAuth();
 
-  // 🔧 Form-state
+  // Form-state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔧 Om already logged in → hoppa till chat direkt
+  // Om already logged in, hoppa till chat direkt
   useEffect(() => {
     if (token) navigate("/chat");
   }, [token, navigate]);
@@ -39,19 +39,16 @@ export default function Login() {
       // 4) In i chatten!
       navigate("/chat");
     } catch (err) {
-      // 🔧 ÄNDRAT: använd klassificerade felkoder från createToken
+      // Använd klassificerade felkoder från createToken
       //    - invalid_credentials (401)
       //    - validation (400)
       //    - unknown (övrigt)
       if (err?.code === "invalid_credentials") {
-        // 🔧 ÄNDRAT
-        alert("Fel användarnamn eller lösenord."); // 🔧 ÄNDRAT
+        alert("Fel användarnamn eller lösenord.");
         console.warn("Login failed:", err); // valfritt, för debugging/uppgifts kraven. Användarvänligt med alert och sedan console för utvecklare.
       } else if (err?.code === "validation") {
-        // 🔧 ÄNDRAT
-        alert(err.message || "Valideringsfel – kontrollera fälten."); // 🔧 ÄNDRAT
+        alert(err.message || "Valideringsfel – kontrollera fälten.");
       } else {
-        // 🔧 ÄNDRAT
         alert(
           err?.message || `Kunde inte logga in (HTTP ${err?.status ?? "?"}).`
         );
@@ -65,7 +62,7 @@ export default function Login() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-4xl font-bold mb-8">Logga in</h1>
 
-      {/* 🔧 ÄNDRAT: hanteras i React med onSubmit */}
+      {/* Hanteras i React med onSubmit */}
       <form
         onSubmit={handleLogin}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"

@@ -1,8 +1,7 @@
-// 🔧 __NYTT: imports__
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { getCsrf, registerUser, createToken } from "../api/auth"; // 🔧 __NYTT__
+import { getCsrf, registerUser, createToken } from "../api/auth";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -63,7 +62,7 @@ export default function Register() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-4xl font-bold mb-8">Registrera dig</h1>
 
-      {/* 🔧 __ÄNDRAT: onSubmit hanteras i React__ */}
+      {/* OnSubmit hanteras i React__ */}
       <form
         onSubmit={handleRegister}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
@@ -88,7 +87,7 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="********"
             name="password"
-            type="password" // 🔧 __ÄNDRAT__
+            type="password"
             required
             className="mt-1 block w-full px-3 py-2 border rounded-md"
           />

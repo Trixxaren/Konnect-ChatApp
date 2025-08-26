@@ -1,7 +1,7 @@
 // AuthContext för att göra en "central lista" på vilka som har token och vilka som inte har det istället för att varje component ska behöva kolla det själv.
 // Utan token och user måste man skicka dem som props genom många lager av komponenter, vilket blir bökigt.
 // Context gör det möjligt att "slippa props" och istället hämta det direkt i komponenten som behöver det.
-// Metafor "klubbchefen som håller alla med gästlistan för att uppdatera varje rum vem som har token och inte."
+// Metafor "klubbchefen som håller gästlistan för att sedan uppdatera varje rum vem som har token och inte och inte behöva fråga varje person själv".
 
 import { createContext, useContext, useState, useEffect, use } from "react";
 

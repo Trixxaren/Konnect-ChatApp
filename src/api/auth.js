@@ -1,5 +1,3 @@
-// 🔧 __NYTT: Litet auth-API som följer Swagger__
-
 /** Hämta CSRF-stämpel */
 export async function getCsrf() {
   const res = await fetch("/csrf", {
@@ -26,42 +24,42 @@ export async function registerUser({
     body: JSON.stringify({ username, password, email, avatar, csrfToken }),
   });
 
-  // ✅ NYTT: läs råtext först (ibland tom), parsa försiktigt
-  const raw = await res.text().catch(() => ""); // ✅ NYTT
-  let data = null; // ✅ NYTT
+  // Läs råtext först (ibland tom), parsa försiktigt
+  const raw = await res.text().catch(() => "");
+  let data = null;
   try {
     data = raw ? JSON.parse(raw) : null;
-  } catch {} // ✅ NYTT
+  } catch {}
 
   if (res.ok) {
     // 201 Created – ibland utan body. Allt OK.
-    return { ok: true, data }; // 🔧 ÄNDRAT (returnera lite mer info)
+    return { ok: true, data }; // Rreturnera lite mer info
   }
 
-  // ✅ NYTT: hämta meddelande från olika fält
-  const apiMsg = data?.message || data?.error || raw || "Okänt fel"; // ✅ NYTT
+  // Hämta meddelande från olika fält
+  const apiMsg = data?.message || data?.error || raw || "Okänt fel";
 
-  // ✅ NYTT: klassificera felet
-  let code = "unknown"; // ✅ NYTT
+  // Klassificera felet
+  let code = "unknown";
   if (res.status === 409) {
-    code = "user_exists"; // ✅ NYTT
+    code = "user_exists";
   } else if (res.status === 400) {
     // Vissa API:er svarar 400 även när kontot redan finns
     if (/exist|already|taken|duplicate|registered/i.test(apiMsg)) {
-      code = "user_exists"; // ✅ NYTT
+      code = "user_exists";
     } else {
-      code = "validation"; // ✅ NYTT
+      code = "validation";
     }
   }
 
-  const err = new Error(apiMsg || `Register misslyckades (${res.status}).`); // 🔧 ÄNDRAT
-  err.code = code; // ✅ NYTT
-  err.status = res.status; // ✅ NYTT
-  throw err; // 🔧 ÄNDRAT
+  const err = new Error(apiMsg || `Register misslyckades (${res.status}).`);
+  err.code = code;
+  err.status = res.status;
+  throw err;
 }
 
 // Vissa API:er svarar 400 även när kontot redan finns
-// 🔧 ÄNDRAT: robust felhantering för login/token
+// Robust felhantering för login/token
 export async function createToken({ username, password, csrfToken }) {
   const res = await fetch("/auth/token", {
     method: "POST",
@@ -84,7 +82,7 @@ export async function createToken({ username, password, csrfToken }) {
   // Plocka fram meddelande
   const apiMsg = data?.message || data?.error || raw || "Login misslyckades.";
 
-  // 🔎 Klassificera
+  // Klassificera
   let code = "unknown";
   if (res.status === 401) code = "invalid_credentials";
   else if (res.status === 400) code = "validation";

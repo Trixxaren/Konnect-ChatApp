@@ -1,8 +1,8 @@
-// 🔧 NYTT: Minimalt API-lager för meddelanden (följer samma mönster som auth.js)
+// Minimalt API-lager för meddelanden (följer samma mönster som auth.js)
 
 import { getCsrf } from "./auth";
 
-/** Hjälp: säkert JSON-parse även om svar är tomt */
+/* Säkert JSON-parse även om svar är tomt */
 function safeJson(text) {
   try {
     return text ? JSON.parse(text) : null;
@@ -11,13 +11,13 @@ function safeJson(text) {
   }
 }
 
-/** 🔧 NYTT: Hämta meddelanden (GET /messages) */
+/* Hämta meddelanden (GET /messages) */
 export async function getMessages({ token }) {
   const res = await fetch("/messages", {
     method: "GET",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${token}`, // 🔑 JWT krävs
+      Authorization: `Bearer ${token}`, // JWT krävs
     },
   });
 
@@ -35,7 +35,7 @@ export async function getMessages({ token }) {
   return Array.isArray(data) ? data : [];
 }
 
-/** 🔧 NYTT: Skapa meddelande (POST /messages) – kräver CSRF + JWT */
+/* Skapa meddelande (POST /messages) – kräver CSRF + JWT */
 export async function createMessage({ token, text }) {
   const { csrfToken } = await getCsrf(); // stämpel enligt Swagger
 
@@ -46,7 +46,7 @@ export async function createMessage({ token, text }) {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ text, csrfToken }), // 🔧 VIKTIGT: skicka CSRF i body (enligt er modell)
+    body: JSON.stringify({ text, csrfToken }), // Skicka CSRF i body
   });
 
   const raw = await res.text().catch(() => "");
@@ -62,7 +62,7 @@ export async function createMessage({ token, text }) {
   return data; // ny message
 }
 
-/** 🔧 NYTT: Radera meddelande (DELETE /messages/:id) – kräver CSRF + JWT */
+/** Radera meddelande (DELETE /messages/:id) – kräver CSRF + JWT */
 export async function deleteMessage({ token, id }) {
   const { csrfToken } = await getCsrf();
 
