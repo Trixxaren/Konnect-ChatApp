@@ -16,8 +16,8 @@ export default function Chat() {
   const demoMessages = [
     {
       id: "1",
-      author: "System",
-      text: "Välkommen till chatten!",
+      author: "Emma",
+      text: "Hallå där!",
       createdAt: "10:00",
     },
     {
@@ -41,33 +41,34 @@ export default function Chat() {
               className="p-2 rounded-lg hover:bg-gray-100"
               title="Meny"
             >
+              {/* Hamburgarmenyn  */}
               <svg viewBox="0 0 20 20" className="h-6 w-6" fill="currentColor">
                 <path d="M3 5h14v2H3V5zm0 4h14v2H3V9zm0 4h14v2H3v-2z" />
               </svg>
             </button>
 
             <span className="text-xl font-semibold">Konnect Chat</span>
-            <span className="hidden sm:inline text-sm text-gray-500">
+            {/* <span className="hidden sm:inline text-sm text-gray-500">
               / general
-            </span>
+            </span> */}
           </div>
 
           <div className="flex items-center gap-3">
             {/* 🔧 Klick på avatar öppnar också menyn */}
-            <img
+            {/* <img
               src={avatar}
               alt="Avatar"
               className="h-8 w-8 rounded-full border cursor-pointer"
               onClick={() => setOpenNav(true)}
               title="Öppna meny"
-            />
-            <span className="text-sm text-gray-600">{user?.username}</span>
+            /> */}
+            {/* <span className="text-sm text-gray-600">{user?.username}</span>
             <button
               onClick={logout}
               className="px-3 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
             >
               Logga ut
-            </button>
+            </button> */}
           </div>
         </div>
       </header>
