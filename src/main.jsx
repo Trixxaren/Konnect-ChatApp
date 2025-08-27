@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { AuthProvider } from "./auth/AuthContext.jsx";
-import "./index.css"; // Importera din CSS-fil
+import "./index.css";
 
 import { BrowserRouter } from "react-router-dom";
 

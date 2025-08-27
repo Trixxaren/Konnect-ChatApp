@@ -5,6 +5,7 @@ import { Navigate, Outlet } from "react-router-dom";
 // Navigate skickar användaren till en annan route (redirect).
 // Outlet platsen där de barn-routes (t.ex. Login, Register) kommer att renderas.
 import { useAuth } from "../auth/AuthContext";
+//hämmtar Auth-state från AuthContext.
 
 export default function GuestRoute() {
   const { token } = useAuth();
@@ -13,4 +14,5 @@ export default function GuestRoute() {
 
   return token ? <Navigate to="/chat" replace /> : <Outlet />;
   // Om token finns så skicka till /chat om inte skickas till barn-routes (Outlet) /login eller /register.
+  // Så en enkel funktion som kollar om token finns eller inte.
 }
