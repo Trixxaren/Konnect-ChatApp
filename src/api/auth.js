@@ -1,16 +1,14 @@
-/** Hämta CSRF-stämpel */
+/** Hämta CSRF-stämpel som krävs i register & login*/
 export async function getCsrf() {
   const res = await fetch("/csrf", {
-    method: "PATCH",
-    headers: { Accept: "application/json" },
+    method: "PATCH", //patch för att hämta en ny csrf-token, post/auth/register & post/auth/token kräver csrf-token
+    headers: { Accept: "application/json" }, // Vi vill ha JSON tillbaka
   });
   if (!res.ok) throw new Error(`CSRF failed: ${res.status}`);
-  return res.json(); // { csrfToken: "..." }
+  return res.json(); // felkod om CCSR misslyckas
 }
 
-// src/api/auth.js
-
-/** Registrera användare — kräver csrfToken */
+/** Registrera användare, kräver csrfToken */
 export async function registerUser({
   username,
   password,
@@ -18,74 +16,79 @@ export async function registerUser({
   avatar,
   csrfToken,
 }) {
+  // Skickar POST till /auth/register med användardata
   const res = await fetch("/auth/register", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" }, // vi skickar JSON
     body: JSON.stringify({ username, password, email, avatar, csrfToken }),
   });
 
-  // Läs råtext först (ibland tom), parsa försiktigt
-  const raw = await res.text().catch(() => "");
+  // Läs svaret som text (kan vara tomt ibland)
+  const raw = await res.text().catch(() => ""); // om text() misslyckas, returnera tom sträng
   let data = null;
   try {
-    data = raw ? JSON.parse(raw) : null;
+    data = raw ? JSON.parse(raw) : null; // försök tolka texten som JSON
   } catch {}
 
   if (res.ok) {
-    // 201 Created – ibland utan body. Allt OK.
-    return { ok: true, data }; // Rreturnera lite mer info
+    // 201 Created, lyckad registrering
+    // { id: 123, username: "...", email: "...", avatar: "
+    return { ok: true, data }; // Rreturnera info tillbaka
   }
 
-  // Hämta meddelande från olika fält
+  // Misslyckad registrering, felhanteringsmeddelande för användaren
   const apiMsg = data?.message || data?.error || raw || "Okänt fel";
 
-  // Klassificera felet
+  // Klassificera felet (för att kunna ge användaren rätt meddelande)
   let code = "unknown";
   if (res.status === 409) {
-    code = "user_exists";
+    code = "user_exists"; // 409 betyder oftast att användaren finns redan
   } else if (res.status === 400) {
-    // Vissa API:er svarar 400 även när kontot redan finns
+    //400 = "Bad Request" valideringsfel(t.ex. ogiltig email, tomt lösenord etc...)
     if (/exist|already|taken|duplicate|registered/i.test(apiMsg)) {
       code = "user_exists";
     } else {
-      code = "validation";
+      code = "validation"; // annars ett valideringsfel (t.ex. ogiltig email etc)
     }
   }
-
+  // Skapa och kasta ett Error-objekt med extra info
   const err = new Error(apiMsg || `Register misslyckades (${res.status}).`);
   err.code = code;
   err.status = res.status;
   throw err;
 }
 
-// Vissa API:er svarar 400 även när kontot redan finns
-// Robust felhantering för login/token
+/** Skapa token (login) kräver csrfToken */
 export async function createToken({ username, password, csrfToken }) {
   const res = await fetch("/auth/token", {
-    method: "POST",
+    method: "POST", // Skickar POST till /auth/token för att logga in
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ username, password, csrfToken }),
   });
 
-  // Läs body säkert (kan vara tom / inte JSON)
-  const raw = await res.text().catch(() => "");
+  // Läs svaret som text (kan vara tomt / inte JSON)
+
+  const raw = await res.text().catch(() => ""); // om text() misslyckas, returnera tom sträng
   let data = null;
   try {
-    data = raw ? JSON.parse(raw) : null;
+    data = raw ? JSON.parse(raw) : null; // försök tolka texten som JSON
   } catch {}
 
   if (res.ok) {
-    // { token: "..." }
+    // Lyckad login, returnerar { token: "..." }
     return data || {};
   }
 
-  // Plocka fram meddelande
+  // Misslyckad login så plockar vi fram felmeddelande
   const apiMsg = data?.message || data?.error || raw || "Login misslyckades.";
 
-  // Klassificera
+  // Klassificera felet (för att kunna ge användaren rätt meddelande)
   let code = "unknown";
   if (res.status === 401) code = "invalid_credentials";
-  else if (res.status === 400) code = "validation";
+  // 401 = "Unauthorized" felaktiga inloggningsuppgifter
+  else if (res.status === 400) code = "validation"; // 400 = "Bad Request" valideringsfel(t.ex. tomt lösenord etc...)
+
+  // Skapa och kasta Error-objekt
 
   const err = new Error(apiMsg);
   err.code = code;
