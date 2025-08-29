@@ -1,3 +1,5 @@
+// Första steget för att hämta CSRF för att kunnar registrera & logga ina användare
+
 /** Hämta CSRF-stämpel som krävs i register & login*/
 export async function getCsrf() {
   const res = await fetch("/csrf", {
@@ -24,7 +26,7 @@ export async function registerUser({
   });
 
   // Läs svaret som text (kan vara tomt ibland)
-  const raw = await res.text().catch(() => ""); // om text() misslyckas, returnera tom sträng
+  const raw = await res.text().catch(() => ""); // om text() misslyckas, returnera tom sträng.catch(() =>"")
   let data = null;
   try {
     data = raw ? JSON.parse(raw) : null; // försök tolka texten som JSON
