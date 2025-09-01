@@ -1,31 +1,39 @@
 import { useEffect } from "react";
 
+// Komponent för sidomenyn (overlay från vänster)
+// Props:
+// - open: boolean, om menyn är öppen eller ej
+// - onClose: funktion som körs när menyn ska stängas
+// - user: användarinfo (username, email, avatar)
+// - onLogout: funktion för att logga ut
+// - avatarUrl: eventuell avatar-URL att använda
+
 export default function SideNav({ open, onClose, user, onLogout, avatarUrl }) {
+  // Effekt: stäng menyn om man trycker på Escape-knappen
   useEffect(() => {
-    if (!open) return;
+    if (!open) return; // bara om menyn är öppen
     const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey); // lyssna på keydown
     return () => window.removeEventListener("keydown", onKey);
+    // Cleanup: ta bort event listener när menyn stängs
   }, [open, onClose]);
 
-  const fallback = `https://i.pravatar.cc/200?u=${encodeURIComponent(
-    user?.username || "guest"
-  )}`;
-  const avatar = avatarUrl || user?.avatar || fallback;
+  const avatar = avatarUrl;
 
   return (
     <div
       className={`fixed inset-0 z-[100] ${
         open ? "pointer-events-auto" : "pointer-events-none"
       }`}
-      aria-hidden={!open}
+      inert={!open} // göm för skärmläsare om ej öppen, hela overlayen ignoreras av skärmläsare.
     >
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0"
         }`}
-        onClick={onClose}
+        onClick={onClose} // klick på bakgrund = stäng menyn
       />
+      {/* Själva sidomenyn (aside) */}
       <aside
         className={`
           absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-white shadow-xl
@@ -36,6 +44,7 @@ export default function SideNav({ open, onClose, user, onLogout, avatarUrl }) {
         role="dialog"
         aria-modal="true"
       >
+        {/* Header med avatar, username och stäng-knapp */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <div className="flex items-center gap-3">
             <img
@@ -45,11 +54,10 @@ export default function SideNav({ open, onClose, user, onLogout, avatarUrl }) {
             />
             <div className="leading-tight">
               <p className="font-semibold">{user?.username ?? "Användare"}</p>
-              <p className="text-xs text-gray-500 truncate">
-                {user?.email ?? ""}
-              </p>
+              <p className="text-xs text-gray-500 truncate"></p>
             </div>
           </div>
+          {/* Stäng knapp (X-ikon) */}
           <button
             onClick={onClose}
             aria-label="Stäng meny"
@@ -64,39 +72,10 @@ export default function SideNav({ open, onClose, user, onLogout, avatarUrl }) {
             </svg>
           </button>
         </div>
+        {/* Meny innehåll, jag har gjort det tomt för nu, kan fyllas med länkar för senare uppdateringar */}
+        <nav className="flex-1 overflow-y-auto px-3 py-2"></nav>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-2">
-          {/* <p className="px-2 py-1 text-xs uppercase tracking-wide text-gray-500">
-            Navigation
-          </p>
-          <ul className="mt-1 space-y-1">
-            <li>
-              <a
-                className="block px-3 py-2 rounded-lg hover:bg-gray-100"
-                href="#"
-              >
-                Hem
-              </a>
-            </li>
-            <li>
-              <a
-                className="block px-3 py-2 rounded-lg hover:bg-gray-100"
-                href="#"
-              >
-                Profil
-              </a>
-            </li>
-            <li>
-              <a
-                className="block px-3 py-2 rounded-lg hover:bg-gray-100"
-                href="#"
-              >
-                Inställningar
-              </a>
-            </li>
-          </ul> */}
-        </nav>
-
+        {/* Footer med logout-knapp */}
         <div className="border-t p-3">
           <button
             onClick={onLogout}
