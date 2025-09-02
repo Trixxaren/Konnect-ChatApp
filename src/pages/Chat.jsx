@@ -227,8 +227,8 @@ export default function Chat() {
   const handleDelete = async (msg) => {
     // tar emot hela message objektet
     if (!isMine(msg)) return; // säkerställ att det är mitt meddelande
-    if (!confirm("Radera meddelandet?")) return; // bekräfta med användaren
-    // Radera på servern (API-lager lägger på JWT + CSRF)
+    if (!confirm("Återkalla meddelandet?")) return; // bekräfta med användaren
+    // Radera på servern, lägger på JWT + CSRF för att radera
 
     try {
       await deleteMessage({ token, id: msg.id }); // skicka id
