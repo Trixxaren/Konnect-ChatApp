@@ -209,7 +209,7 @@ export default function Chat() {
         text: pickReply(userText), // välj ett svar
         createdAt: new Date().toISOString(), // nu som tid
         userId: null, // bot har inget userId
-        sender: "Bot", // avsändare är "Bot"
+        sender: "Degen", // avsändare är "Bot"
       };
       setMessages((prev) => [...prev, reply]); // lägg till i chatten
       setBotTyping(false); // sluta visa "skriver…" för att boten han svarat
