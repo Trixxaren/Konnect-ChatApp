@@ -12,15 +12,16 @@ const MY_IDS_KEY = "myMessageIds";
 /* Helpers att lagra/läsa "mina ids" fungerar vid refresh) */
 function loadMyIds() {
   try {
-    const raw = localStorage.getItem(MY_IDS_KEY);
-    return new Set(raw ? JSON.parse(raw) : []);
+    const raw = localStorage.getItem(MY_IDS_KEY); // läs från localStorage
+    return new Set(raw ? JSON.parse(raw) : []); // gör om till Set av id:n eller tom Set om inget finns
   } catch {
-    return new Set();
+    return new Set(); // vid fel, retunera set, som är en datastruktur som bara lagrar unika värden, perfekt för att hålla reda på vilka meddelande-ID:n som tillhör användaren utan dubbletter.
   }
 }
 function saveMyIds(set) {
+  // tar emot en Set av id:n och sparar den i localStorage
   try {
-    localStorage.setItem(MY_IDS_KEY, JSON.stringify([...set]));
+    localStorage.setItem(MY_IDS_KEY, JSON.stringify([...set])); // gör om Set till array och sen till JSON-sträng för lagring
   } catch {}
 }
 
@@ -41,6 +42,7 @@ const KEYWORD_REPLIES = [
   },
 ];
 const FALLBACK_REPLIES = [
+  // generella svar om inget keyword matchar
   "Kul!",
   "Låter bra.",
   "Okej, jag fattar.",
@@ -51,9 +53,11 @@ const FALLBACK_REPLIES = [
 // Välj ett botsvar utifrån text annars fallback reply
 function pickReply(text) {
   for (const r of KEYWORD_REPLIES) {
+    // kolla alla keywords
     if (r.test.test(text)) {
-      const list = r.replies;
-      return list[Math.floor(Math.random() * list.length)];
+      // om matchar välja slumpmässigt reply
+      const list = r.replies; // lista av möjliga svar
+      return list[Math.floor(Math.random() * list.length)]; // slumpa fram ett svar
     }
   }
   return FALLBACK_REPLIES[Math.floor(Math.random() * FALLBACK_REPLIES.length)];
