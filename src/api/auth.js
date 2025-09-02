@@ -1,5 +1,4 @@
-// Första steget för att hämta CSRF för att kunnar registrera & logga ina användare
-// För att kunna skapa meddelanden krävs JWT + CSRF
+// Första steget för att hämta CSRF för att kunnar registrera & logga in användare
 // Register & login kräver CSRF, skapa meddelande kräver CSRF + JWT
 // CSRF-token är en "engångs-token" som måste hämtas innan varje POST/DELETE/PATCH
 // (för att skydda mot CSRF-attacker) Cross-Site Request Forgery
