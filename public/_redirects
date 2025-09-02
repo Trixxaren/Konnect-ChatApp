@@ -1,11 +1,7 @@
-/auth            https://chatify-api.up.railway.app/auth               200
-/auth             https://chatify-api.up.railway.app/auth/:splat        200
-
+/auth               https://chatify-api.up.railway.app/auth               200
+/auth/*             https://chatify-api.up.railway.app/auth/:splat        200
 /messages           https://chatify-api.up.railway.app/messages           200
-/messages         https://chatify-api.up.railway.app/messages/:splat    200
-
+/messages/*         https://chatify-api.up.railway.app/messages/:splat    200
 /csrf               https://chatify-api.up.railway.app/csrf               200
 /conversations      https://chatify-api.up.railway.app/conversations      200
-
-
-/index.html                                           200
+/*                  /index.html                                           200
